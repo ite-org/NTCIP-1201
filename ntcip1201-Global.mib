@@ -1,0 +1,108 @@
+NTCIP1201-Global   DEFINITIONS ::= BEGIN
+IMPORTS
+MODULE-IDENTITY, OBJECT-IDENTITY
+                                               FROM SNMPv2-SMI
+                                                         -- RFC 2578
+devices, deviceAdmin
+                                               FROM NTCIP8004-Transportation;
+
+global MODULE-IDENTITY
+  LAST-UPDATED "202212120500Z"
+  ORGANIZATION "NTCIP BSP2 WG"
+  CONTACT-INFO
+   "name: NTCIP Coordinator
+    email: ntcip@nema.org
+    postal: National Electrical Manufacturers Association
+            1300 North 17th Street, Suite 1752
+            Rosslyn, Virginia 22209-3801"
+  DESCRIPTION
+    "This MIB defines the structure of management information under the 
+     global node. In particular, it defines the global and globalAdmin nodes 
+     that are used by other MIBs contained in NTCIP 1201.
+
+     <Object Identifier> 1.3.6.1.4.1.1206.4.2.6
+
+     Copyright (C) 2022 by the American Association of State Highway and
+     Transportation Officials (AASHTO), the Institute of Transportation
+     Engineers (ITE), and the National Electrical Manufacturers Association
+     (NEMA). All intellectual property rights, including, but not limited to,
+     the rights of reproduction in whole or in part in any form, translation
+     into other languages and display are reserved by the copyright owners 
+     under the laws of the United States of America, the Universal Copyright
+     Convention, the Berne Convention, and the International and Pan American
+     Copyright Conventions. 
+
+                         Joint NEMA, AASHTO, and ITE
+                      NTCIP Management Information Base
+                            DISTRIBUTION NOTICE
+    
+     To the extent and in the limited event these materials are distributed 
+     by AASHTO/ITE/NEMA in the form of a Management Information Base (MIB) 
+     module, AASHTO/ITE/NEMA extends the permission for users to make and/or 
+     distribute unlimited copies of the unedited MIB module, including copies 
+     for commercial distribution, provided that each copy made and/or 
+     distributed contains this Notice.
+
+     The MIB module may be distributed with a companion MIB module that 
+     contains one or more invocations of the AGENT-CAPABILITIES macro that 
+     specifies the capabilities of a specific implementation. By convention, 
+     such a companion MIB module might have the same module name followed by 
+     '-', followed the enterprise's Internet Assigned Number Authority 
+     (IANA)-assigned enterprise number.
+
+     These materials are delivered 'AS IS' without any warranties as to their
+     use or performance.
+ 
+     AASHTO/ITE/NEMA AND THEIR SUPPLIERS DO NOT WARRANT THE PERFORMANCE OR
+     RESULTS YOU MAY OBTAIN BY USING THESE MATERIALS. AASHTO/ITE/NEMA AND 
+     THEIR SUPPLIERS MAKE NO WARRANTIES, EXPRESS OR IMPLIED, AS TO 
+     NONINFRINGEMENT OF THIRD-PARTY RIGHTS, MERCHANTABILITY, OR FITNESS FOR 
+     ANY PARTICULAR PURPOSE. IN NO EVENT WILL AASHTO, ITE OR NEMA OR THEIR 
+     SUPPLIERS BE LIABLE TO YOU OR ANY THIRD PARTY FOR ANY CLAIM OR FOR ANY 
+     CONSEQUENTIAL, INCIDENTAL OR SPECIAL DAMAGES, INCLUDING ANY LOST PROFITS 
+     OR LOST SAVINGS, ARISING FROM YOUR REPRODUCTION OR USE OF THESE 
+     MATERIALS, EVEN IF AN AASHTO, ITE, OR NEMA REPRESENTATIVE HAS BEEN 
+     ADVISED OF THE POSSIBILITY OF SUCH DAMAGES. Some states or jurisdictions 
+     do not allow the exclusion or limitation of incidental, consequential or 
+     special damages, or the exclusion of implied warranties, so the above 
+     limitations may not apply to you.
+
+     Use of these materials does not constitute an endorsement or affiliation 
+     by or between AASHTO, ITE, or NEMA and you, your company, or your 
+     products and services.
+
+     NTCIP is a trademark of AASHTO/ITE/NEMA."
+  REVISION "202212120500Z"
+  DESCRIPTION
+    "NTCIP 1201 v04 - The first version of the NTCIP1201-Global MIB. 
+     The nodes defined within this MIB were previously defined in NTCIP1201-
+     v03 in SMIv1 format. "
+  ::= { devices 6 }
+ 
+-- 2.2 NODE DEFINITIONS
+adminGlobal  OBJECT-IDENTITY
+  STATUS     current
+  DESCRIPTION
+    "A node used to group NTCIP 1201 objects that should only be accessible 
+     by users with administrator rights. Grouping these objects under the 
+     administrator node allows easy configuration of access control rights.
+     <Object Identifier> 1.3.6.1.4.1.1206.4.2.126.6"
+  ::= { deviceAdmin 6 }
+
+globalV2     OBJECT-IDENTITY
+  STATUS     current
+  DESCRIPTION
+    "A node used to group the MIBs associated with the second major version 
+     of global objects.
+     <Object Identifier> 1.3.6.1.4.1.1206.4.2.6.9"
+  ::= { global 9 }
+
+adminGlobalV2 OBJECT-IDENTITY
+  STATUS     current
+  DESCRIPTION
+    "A node used to group globalV2 objects that should only be accessible 
+     by users with administrator rights. 
+     <Object Identifier> 1.3.6.1.4.1.1206.4.2.126.6.9"
+  ::= { adminGlobal 9 }
+
+END
