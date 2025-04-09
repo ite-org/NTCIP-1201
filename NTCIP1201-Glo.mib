@@ -1,0 +1,1387 @@
+--******************************************************************************
+-- Filename:    1201(GLO).MIB
+-- Source:      NTCIP 1201:1996
+--              NEMA TS 3.4-1996 Amendment 1
+-- Description: This MIB defines the Global Object Definitions
+-- MIB Revision History:
+-- 01/01/98     Preliminary Release of TS 3.4 GLOBAL MIB formatted for 80
+--              columns and no TABs
+-- 07/08/98     Added Copyright Notice
+-- 03/09/00     Renamed filename and updated copyright year
+--              Reversed edits to accomodate SMIC Compiler
+--              Reenabled OBJECT-TYPE import
+--              Deleted SMI OBJECT-TYPE
+--              Dropped EXPORTS
+--              Corrected minor editorial errors in Amendment 1
+--              Imported Gauge and referenced it correctly
+-- 08/09/00     Modified header format and wording of copyright and MIB
+--              Distribution Notice
+-- 08/30/00     Added constraint to globalSetIDParameter per Amendment
+--
+--Copyright 1998-2000 by the American Association of State Highway and
+--Transportation Officials (AASHTO), the Institute of Transportation Engineers
+--(ITE), and the National Electrical Manufacturers Association (NEMA).  All
+--intellectual property rights, including, but not limited to, the rights of
+--reproduction in whole or in part in any form, translation into other
+--languages and display are reserved by the copyright owners under the laws of
+--the United States of America, the Universal Copyright Convention, the Berne
+--Convention, and the International and Pan American Copyright Conventions.
+--Except for the MIB, Do not copy without written permission of either AASHTO,
+--ITE, or NEMA.
+--
+--                     Joint NEMA, AASHTO, and ITE
+--                  NTCIP Management Information Base
+--                        DISTRIBUTION NOTICE
+--
+--To the extent and in the limited event these materials are distributed by
+--AASHTO/ITE/NEMA in the form of a Management Information Base ("MIB"), 
+--AASHTO/ITE/NEMA extends the following permissions:
+--
+-- (i) you may make and/or distribute unlimited copies (including derivative
+--works) of the MIB, including copies for commercial distribution, provided
+--that (a) each copy you make and/or distribute contains this Notice and (b)
+--each derivative work of the MIB uses the same module name followed by "-",
+--followed by your Internet Assigned Number Authority (IANA)-assigned 
+--enterprise number;
+--(ii) use of the MIB is restricted in that the syntax field may be modified
+--only to reflect a more restrictive sub-range or enumerated values;
+--(iii) the description field may be modified but only to the extent that:
+--(a) only those bit values or enumerated values that are supported are
+--listed; and (b) the more restrictive subrange is expressed.
+--
+--These materials are delivered "AS IS" without any warranties as to their use
+--or performance.
+--
+--AASHTO/ITE/NEMA AND THEIR SUPPLIERS DO NOT WARRANT THE PERFORMANCE OR
+--RESULTS YOU MAY OBTAIN BY USING THESE MATERIALS.  AASHTO/ITE/NEMA AND THEIR
+--SUPPLIERS MAKE NO WARRANTIES, EXPRESS OR IMPLIED, AS TO NONINFRINGEMENT OF
+--THIRD PARTY RIGHTS, MERCHANTABILITY, OR FITNESS FOR ANY PARTICULAR PURPOSE.
+--IN NO EVENT WILL AASHTO, ITE OR NEMA OR THEIR SUPPLIERS BE LIABLE TO YOU OR
+--ANY THIRD PARTY FOR ANY CLAIM OR FOR ANY CONSEQUENTIAL, INCIDENTAL OR
+--SPECIAL DAMAGES, INCLUDING ANY LOST PROFITS OR LOST SAVINGS, ARISING FROM
+--YOUR REPRODUCTION OR USE OF THESE MATERIALS, EVEN IF AN AASHTO, ITE, OR NEMA
+--REPRESENTATIVE HAS BEEN ADVISED OF THE POSSIBILITY OF SUCH DAMAGES.  Some
+--states or jurisdictions do not allow the exclusion or limitation of
+--incidental, consequential or special damages, or the exclusion of implied
+--warranties, so the above limitations may not apply to you.
+--
+--Use of these materials does not constitute an endorsement or affiliation by
+--or between AASHTO, ITE, or NEMA and you, your company, or your products and
+--services.
+--
+--NTCIP is a trademark of AASHTO/ITE/NEMA.
+--******************************************************************************
+
+--2.1 NTCIP OBJECTS
+
+--NTCIP OBJECTS
+GLOBAL DEFINITIONS ::= BEGIN
+
+--For the purpose of this section, the following OBJECT IDENTIFIERS are used:
+IMPORTS
+   OBJECT-TYPE
+   FROM RFC-1212
+   transportation
+   FROM NEMA_SMI
+   devices, protocols, profiles, DisplayString
+   FROM TMIB-II
+   Opaque, Counter, Gauge
+   FROM RFC1155-SMI;
+
+
+   global OBJECT IDENTIFIER ::= { devices 6 }
+
+--2.2 GLOBAL CONFIGURATION NODE
+
+globalConfiguration OBJECT IDENTIFIER
+::= { global 1 }
+
+--This node is an identifier used to group all objects for support of
+-- configuration functions that are common to most device types.
+
+--2.2.1 Global Set ID Parameter
+
+globalSetIDParameter OBJECT-TYPE
+   SYNTAX  INTEGER (0..65535)
+   ACCESS  read-only
+   STATUS  optional
+   DESCRIPTION "Specifies a relatively unique ID for all user-changable 
+   para meters of the particular device-type currently implemented in the
+   device.  Often this ID is calculated using a CRC algorithm."
+   ::= { globalConfiguration 1}
+
+--2.2.2 Maximum Modules Parameter
+
+globalMaxModules   OBJECT-TYPE
+   SYNTAX  INTEGER (0..255)
+   ACCESS  read-only
+   STATUS  mandatory
+   DESCRIPTION
+   "The number of rows that are listed in the Global Module Table."
+   ::= { globalConfiguration 2 }
+
+--2.2.3 Module Table
+
+globalModuleTable   OBJECT-TYPE
+   SYNTAX  SEQUENCE OF ModuleTableEntry
+   ACCESS  not-accessible
+   STATUS  mandatory
+   DESCRIPTION
+   " A table containing information regarding manufacturer of software and
+   hardware and the associated module models and version numbers as well as an
+   indicator if the module is hardware or software related. The number of rows
+   in this table shall equal the value of the globalMaxModule object."
+   ::= { globalConfiguration 3 }
+
+moduleTableEntry OBJECT-TYPE
+   SYNTAX  ModuleTableEntry
+   ACCESS  not-accessible
+   STATUS  mandatory
+   DESCRIPTION
+   "This object defines an entry in the module table."
+   INDEX { moduleNumber }
+   ::= { globalModuleTable 1 }
+
+ModuleTableEntry ::= SEQUENCE {
+   moduleNumber            INTEGER,
+   moduleDeviceNode        OBJECT IDENTIFIER,
+   moduleMake              OCTET STRING,
+   moduleModel             OCTET STRING,
+   moduleVersion           OCTET STRING,
+   moduleType              INTEGER }
+
+--2.2.3.1 Module Number Parameter
+
+moduleNumber OBJECT-TYPE
+   SYNTAX  INTEGER (1..255)
+   ACCESS  read-only
+   STATUS  mandatory
+   DESCRIPTION
+   "This object contains the row number (1..255) within this table for the
+   associated module."
+   ::= { moduleTableEntry 1 }
+
+--2.2.3.2 Module Device Node Parameter
+
+moduleDeviceNode   OBJECT-TYPE
+   SYNTAX  OBJECT IDENTIFIER
+   ACCESS  read-only
+   STATUS  mandatory
+   DESCRIPTION
+   "This object contains the device node number of the device-type."
+   ::= { moduleTableEntry 2 }
+
+--2.2.3.3 Module Make Parameter
+
+moduleMake   OBJECT-TYPE
+   SYNTAX  OCTET STRING
+   ACCESS  read-only
+   STATUS  mandatory
+   DESCRIPTION
+   "This object specifies the manufacturer of the associated module.  A null-
+   string shall be transmitted if this object has no entry."
+   ::= { moduleTableEntry 3 }
+
+--2.2.3.4 Module Model Parameter
+
+moduleModel  OBJECT-TYPE
+   SYNTAX  OCTET STRING
+   ACCESS  read-only
+   STATUS  mandatory
+   DESCRIPTION
+   "This object specifies the model number (hardware) or firmware reference
+   (software) of the associated module.  A null-string shall be transmitted if
+   this object has no entry."
+   ::= { moduleTableEntry 4 }
+
+--2.2.3.5 Module Version Parameter
+
+moduleVersion OBJECT-TYPE
+   SYNTAX  OCTET STRING
+   ACCESS  read-only
+   STATUS  mandatory
+   DESCRIPTION
+   "This object specifies the version of the associated module.  A null-string
+   shall be transmitted if this object has no entry."
+   ::= { moduleTableEntry 5 }
+
+--2.2.3.6 Module Type Parameter
+
+moduleType  OBJECT-TYPE
+   SYNTAX  INTEGER {
+      other (1),
+      hardware (2),
+      software (3) }
+   ACCESS  read-only
+   STATUS  mandatory
+   DESCRIPTION
+   "This object specifies if the associated module is a hardware or software
+   module."
+   ::= { moduleTableEntry 6 }
+
+--2.3 GLOBAL DATABASE MANAGEMENT NODE
+
+globalDBManagement OBJECT IDENTIFIER
+::= { global 2 }
+
+-- This node is an identifier used to group all objects for support of database 
+-- functions that are common to most device types.
+
+--2.3.1 Database Creation Transaction
+
+--2.3.1 Database Creation Transaction
+
+dbCreateTransaction   OBJECT-TYPE
+	SYNTAX  INTEGER {   normal (1),
+                    transaction (2),
+                    verifying (3),
+                    done (6) }
+	ACCESS  read-write
+	STATUS  mandatory
+	DESCRIPTION 
+		"This object provides transaction control for device configuration.  The 
+		transaction mode changes the behavior of the agent to force buffering of 
+		database objects until all related database objects have been modified.
+		In the normal mode, SET operations to database objects may be stored in a
+		device's database immediately with no regard to whether other changes will be
+		made.  In the transaction mode, SET operations to database objects are buffered
+		until a verify state performs a consistency check.   When the consistency check
+		completes, the device automatically transitions to the done state where a
+		normal or transaction command can be issued.
+
+		A database object is a user provided piece of setup information that is 
+		necessary for the proper operation of a device.  It is static in nature in that
+		the agent would never change it without direction from the management station.
+		For example, a parameter that defines a default mode of operation would be a
+		database object.  A parameter that indicates the current state of the device
+		would not be a database object.
+ 
+The states and commands are defined as:
+
+NORMAL: SET operations behave as normal SNMP SETs and can have an immediate
+ effect on the value of any database objects used by the device.  This is the
+  default state of this object.  
+
+The only command that may be written to dbCreateTransaction while in this state
+is TRANSACTION.  Any other values written to this object in this state shall
+result in an error response of 'badValue'.
+
+TRANSACTION: SET operations of database objects are buffered by the agent device
+for later consistency checks.  Standard SYNTAX checking takes place at the time
+of the SET operation.  A transaction may consist of multiple SET operations
+over multiple frames.  
+
+The only commands that can be written to dbCreateTransaction while in this state
+are VERIFY and NORMAL.  A VERIFY command will change the state to VERIFY.  If a
+NORMAL command is received, all buffered data is discarded and the state is
+returned to NORMAL.  Any other values written to this object when in this state
+shall result in an error response of 'badValue'.
+
+VERIFY: Specific database objects are checked for consistency.  When consistency
+checks are complete the device will automatically advance to the DONE state.
+
+The state of dbCreateTransaction cannot be changed when in the VERIFY state.
+Any other values written to this object in this state shall result in an error
+response of 'badValue'.
+
+The consistency check analyzes certain critical objects 'in context' and treats
+them as an interrelated whole rather than separate non-related data items.
+The consistency check rules are not defined in this standard.  They are device
+and implementation specific.  Where applicable, the consistency check rules are
+defined in application specific object definition standards.   A specific
+implementation may add additional checks beyond those defined in the standards.
+As a simplified example of a consistency check, consider the following.  Two
+objects are defined to specify the month and the day-of-month of an event.
+Valid values for day-of-month would normally be 1 to 31, but in the context of
+month 9 (September), only the values 1 to 30 are correct.   
+
+DONE:  This state is entered automatically once consistency checks have
+completed in the VERIFY mode.  The value of dbVerifyStatus and dbVerifyError
+indicate whether the consistency check found any errors.
+
+Only two valid values can be written to dbCreateTransaction in this state;
+NORMAL and TRANSACTION.  Any other values written to this object in this state
+shall result in an error response of 'badValue'.
+
+If a NORMAL command is issued and dbVerifyStatus indicates doneWithNoError, the
+buffered data is transferred to the device memory and the state is returned to
+NORMAL.  If a NORMAL command is issued and dbVerifyStatus indicates something 
+other than doneWithError then the buffered data is discarded and the state is 
+returned to NORMAL.
+
+If a TRANSACTION command is issued, regardless of dbVerifyStatus, no action
+takes place (the buffered data is not changed) and the TRANSACTION state is
+re-entered. 
+
+                            Commanded State
+                     transaction       verify    normal      done
+Curr normal        transaction (1)	 normal (2)	normal (2)	normal (2)
+Sta  transaction   transaction (2)	 verify (3)	normal (4)  transaction (2)
+T    verify(7)	   verify (2)		 verify (2)	verify (2)  verify (2)
+E    done (8)	   transaction (5)	 done (2)	normal (6)	done (2)
+
+Operational procedures and error responses:
+(1)  Once a copy of all database objects is placed in a buffer the state is
+     changed to transaction and error response indicates noError.  If the
+     operation fails, the state remains the same and error response indicates
+     genErr.
+(2)  No action takes place, the state remains the same, but response indicates
+     badValue.
+(3)  The state is changed to verify, a consistency check is started, and
+     response indicates noError.
+(4). The buffered copy of all database objects is discarded, the state is
+     changed to normal, and response indicates noError. 
+(5)  The buffered copy of all database objects is not changed or reloaded,
+     the state is changed to transaction, and response indicates noError.
+(6)  If dbVerifyStatus indicates doneWithNoError, then the buffered copy of all
+     database objects is transferred to memory, the state is changed to normal
+     and response indicates noError.  If dbVerifyStatus indicates doneWithError
+     then the buffered data is discarded, the state is changed to NORMAL, and
+     response indicates noError.
+(7)  The state will automatically change to done when the consistency check
+     completes.
+(8)  dbVerifyStatus and dbVerifyError are only valid in this state."
+
+
+::= { globalDBManagement 1 }
+
+--2.3.2 Database Error Type Parameter
+
+dbErrorType OBJECT-TYPE
+SYNTAX  INTEGER { tooBig (1),
+                  noSuchName (2),
+                  badValue (3),
+                  readOnly (4),
+                  genError (5), 
+                  updateError (6),
+                  noError (7)}
+ACCESS  read-only
+STATUS  deprecated
+DESCRIPTION
+"This object returns the current error status of the transaction.  The value of
+this object is only valid when the dbCreateTransaction object is in the Done or
+Error state."
+::= { globalDBManagement 2 }
+
+--2.3.3 Database Error ID Parameter
+
+dbErrorID  OBJECT-TYPE
+SYNTAX  OBJECT IDENTIFIER
+ACCESS  read-only
+STATUS  deprecated
+DESCRIPTION
+"This object contains the object identifier of the first object in the
+transaction buffer that caused an error while dbCreateTransaction object was in
+the Verifying or Updating state.  The value of this object is only valid when
+the dbCreateTransaction object is in the Error state.  It is undefined when the
+dbCreateTransaction object is in other states."
+::= { globalDBManagement 3 }
+
+
+--2.3.4 Database Transaction ID Parameter
+
+dbTransactionID  OBJECT-TYPE
+SYNTAX  INTEGER (0..255)
+ACCESS  read-write
+STATUS  deprecated
+DESCRIPTION
+"This object contains the transaction ID value that is to be contained in all
+SET operation writes while the dbCreateTransaction object is not in the Normal
+state.  During transaction operations every SET command shall begin with a
+write to this object with the current value of this object.  If a SET operation
+is performed without writing to this object, or with a value that does not
+match the current value, then an error response of 'genError' shall be
+returned.  This mechanism is used to determine that the same management station
+that started the transaction is performing the SET operations that are being
+buffered or modifying the state of dbCreateTransaction."
+::= { globalDBManagement 4 }
+
+--2.3.5 Database Make ID Parameter
+
+dbMakeID OBJECT-TYPE
+SYNTAX  INTEGER (0..255)
+ACCESS  read-only
+STATUS  deprecated
+DESCRIPTION
+"This object is used to create unique transaction ID's for management stations
+to use when starting transactions using the dbCreateTransaction object.  This
+object will be incremented by one every time it is read, so that different
+values will be returned for each read.  Management stations wishing to start a
+transaction should first read the dbCreateTransaction object to verify that it
+is in the Normal state.  If so then the management shall GET dbMakeID to obtain
+a transaction ID to use, then SET dbCreateTransaction to startCmd and
+dbTransactionID to the value just received.  If the response to the SET
+operation is 'noError' then the management station has started a transaction.
+If the response to the SET operation is 'genError' then the management station
+should read the dbCreateTransaction and dbTransactionID objects to ensure that
+the error was not due to a communications retry.  If the dbCreateTransaction is
+in the Transaction state, and the dbTransactionID is the same value returned by
+the read of this object, then the management station is the owner of the
+transaction.  If the dbTransactionID does not match the value originally
+returned by this object, then the management station is not the owner of the
+transaction and must wait until the dbCreateTransaction object returns to the
+Normal state before attempting to start the transaction."
+::= { globalDBManagement  5 }
+
+--2.3.6   Database Verify Status Parameter
+dbVerifyStatus   OBJECT-TYPE
+	SYNTAX	INTEGER {	notDone (0),
+						doneWithError (1),
+						doneWithNoError  (2) }
+	ACCESS	read-only
+	STATUS	mandatory
+	DESCRIPTION 
+	"This object indicates the current status of verify (consistency checking)
+	processing. The value of this object is only valid when the dbCreateTransaction
+	object is in the Verify or Done state. If read during any other state, the 
+	value of this object is not valid but no error will be indicated."
+::= { globalDBManagement 6 }
+
+--2.3.7   Database Verify Error Parameter
+dbVerifyError   OBJECT-TYPE
+	SYNTAX	OCTET STRING (SIZE (0..255))
+	ACCESS	read-only
+	STATUS	mandatory
+	DESCRIPTION 
+	"This object contains a textual description of or a reference to an error that
+	 was found by the verify (consistency checking) processing.  The value of this
+	 object is only valid when the dbCreateTransaction object is in the Done state
+	 and the dbVerifyStatus object is in the doneWithError state. If read during any
+	 other state, the value of this object is not valid but no error will be
+	 indicated."
+::= { globalDBManagement 7 }
+
+
+--2.4 GLOBAL TIME MANAGEMENT NODE
+
+globalTimeManagement   OBJECT IDENTIFIER
+::= { global 3 }
+
+-- This node is an identifier used to organize all objects for support of time-
+-- related functions that are common to most device types.
+
+--2.4.1 Global Time Parameter
+
+globalTime  OBJECT-TYPE
+SYNTAX  Counter
+ACCESS  read-write
+STATUS  mandatory
+DESCRIPTION 
+"The current time in seconds since the epoch of 00:00:00 (midnight) January 1,
+1970 UTC (a.k.a Zulu)."
+::= { globalTimeManagement 1 }
+
+--2.4.2 Global Daylight Savings Parameter
+
+globalDaylightSaving   OBJECT-TYPE
+SYNTAX   INTEGER {  other (1),
+                    disableDST (2),
+                    enableUSDST (3) }
+ACCESS  read-write
+STATUS  mandatory
+DESCRIPTION "This object specifies if the Daylight Savings Time (DST) is
+enabled, disabled or some other form of daylight savings time is active.
+         disableDST  - DST clock adjustments shall NOT occur.
+         enableUSDST - DST clock adjustments shall occur. In accordance
+                       with USA practice, DST shall begin the first Sunday in
+                       April and shall end the last Sunday on October.  All
+                       changes of time occur at 2:00AM."
+REFERENCE
+"NEMA TS 2  Clause 3.8.2"
+::= { globalTimeManagement 2 }
+
+--2.4.3 TimeBase Event Scheduler Node
+
+timebase OBJECT IDENTIFIER
+::= { globalTimeManagement 3 }
+
+-- This node is an identifier used to organize the main objects for event
+-- scheduling.  Device type-specific objects (tables) pointed to are defined
+-- within the appropriate MIB.
+
+--2.4.3.1 Maximum Number of Time Base Schedule Entries Parameter
+
+maxTimeBaseScheduleEntries   OBJECT-TYPE
+SYNTAX  INTEGER (0..65535)
+ACCESS  read-only
+STATUS  mandatory
+DESCRIPTION
+"The value of this object specifies the maximum number of different entries
+supported by the device as shown by the number of rows in the
+timeBaseScheduleTable."
+::= { timebase 1 }
+
+--2.4.3.2 Time Base Schedule Table
+
+timeBaseScheduleTable   OBJECT-TYPE
+SYNTAX  SEQUENCE OF TimeBaseScheduleEntry
+ACCESS  not-accessible
+STATUS  mandatory
+DESCRIPTION
+"A table containing the time base schedule parameters for the device.  The
+number of rows in this table might be equal but is not allowed to exceed the
+value of the maxTimeBaseScheduleEntries object.  The table references the
+appropriate day plan for the device.  The plan is determined by comparing the
+current month (MONTH), day of week (DOW) and date of month (DOM) to the
+appropriate fields. The settings for MONTH, DOW and DOM are connected with a
+logical AND.  In order to determine which timebased event to select, determine
+the event which has the most specific date specified.  Select the more specific
+event based on their MONTH settings; if the same, select the most specific DOM;
+if that is still the same, select the most specific DOW;  if that's still the
+same, the first occurence within the time base event table shall be selected.
+More specific means the least number of bits set within an object. All entries
+in Time Base Schedule Table are express in local time and date."
+::= { timebase 2 }
+
+timeBaseScheduleEntry   OBJECT-TYPE
+SYNTAX  TimeBaseScheduleEntry
+ACCESS  not-accessible
+STATUS  mandatory
+DESCRIPTION
+"Event Parameters for the time based schedule programming of the device."
+INDEX   { timeBaseScheduleNumber }
+::= { timeBaseScheduleTable 1 }
+
+TimeBaseScheduleEntry ::= SEQUENCE { 
+     timeBaseScheduleNumber  INTEGER,
+     timeBaseScheduleMonth   INTEGER,
+     timeBaseScheduleDay     INTEGER,
+     timeBaseScheduleDate    INTEGER,
+     timeBaseScheduleDayPlan INTEGER }
+
+--2.4.3.2.1 Time Base Schedule Number Parameter
+timeBaseScheduleNumber   OBJECT-TYPE
+SYNTAX  INTEGER (1..65535 )
+ACCESS  read-only
+STATUS  mandatory
+DESCRIPTION
+"The time base schedule number for objects in this row.  The value of this
+object shall not exceed the value of the maxTimeBaseScheduleEntries object.
+The activation of a scheduled entry shall occur whenever allowed by all other
+objects within this table."
+::= { timeBaseScheduleEntry 1 }
+
+--2.4.3.2.2 Time Base Schedule Month Of Year Parameter
+
+timeBaseScheduleMonth   OBJECT-TYPE
+SYNTAX  INTEGER (0..65535)
+ACCESS  read-write
+STATUS  mandatory
+DESCRIPTION
+"The Month(s) Of the Year that the schedule entry shall be allowed.  Each bit
+represents a specific month.  If the bit is set to one (1), then the scheduled
+entry shall be allowed during the associated month.  If the bit is zero (0),
+then the scheduled entry shall not be allowed during the associated month.
+The bits are defined as:
+    Bit     Month of Year
+    0       Reserved
+    1       January
+    2       February
+    3       March
+    4       April
+    5       May
+    6       June
+    7       July
+    8       August
+    9       September
+    10      October
+    11      November
+    12      December
+    13 - 15 Reserved"
+::= { timeBaseScheduleEntry 2 }
+
+--2.4.3.2.3 Time Base Schedule Day Of Week Parameter
+
+
+timeBaseScheduleDay   OBJECT-TYPE
+SYNTAX  INTEGER (0..255)
+ACCESS  read-write
+STATUS  mandatory
+DESCRIPTION
+"The Day(s) Of Week that the schedule entry shall be allowed. Each bit
+represents a specific day of the week.  If the bit is set to one (1), then the
+scheduled entry shall be allowed during the associated DOW.  If the bit is set
+to zero (0), then the scheduled entry shall not be allowed during the
+associated DOW.  The bits are defined as:
+    Bit Day of Week
+    0   Reserved
+    1   Sunday
+    2   Monday
+    3   Tuesday
+    4   Wednesday
+    5   Thursday
+    6   Friday
+    7   Saturday"
+::= { timeBaseScheduleEntry 3 }
+
+--2.4.3.2.4 Time Base Schedule Date Parameter
+
+timeBaseScheduleDate   OBJECT-TYPE
+SYNTAX  INTEGER (0..4294967295)
+ACCESS  read-write
+STATUS  mandatory
+DESCRIPTION
+"The Day(s) Of a month that the schedule entry shall be allowed.  Each bit
+represents a specific date of the month.  If the bit is set to one (1), then
+the scheduled entry shall be allowed during the associated date.  If the bit is
+set to zero (0), then the scheduled entry shall not be allowed during the
+associated date.
+The bits are defined as:
+    Bit Day Number
+    0   Reserved
+    1   Day 1
+    2   Day 2
+    ||
+    31  Day 31"
+::= { timeBaseScheduleEntry 4 }
+
+--2.4.3.2.5 Time Base Schedule Day Plan Parameter
+
+timeBaseScheduleDayPlan   OBJECT-TYPE
+SYNTAX  INTEGER (1..255)
+ACCESS  read-write
+STATUS  mandatory
+DESCRIPTION
+"This object specifies what Plan number shall be associated with this
+timeBaseScheduleDayPlan-object."
+::= { timeBaseScheduleEntry 5 }
+
+--2.4.4 Day Plan Parameters
+
+--2.4.4.1 Maximum Number of Day Plans- Parameter
+
+maxDayPlans   OBJECT-TYPE
+SYNTAX  INTEGER (1..255)
+ACCESS  read-only
+STATUS  mandatory
+DESCRIPTION
+"The value of this object specifies the maximum, fixed number of different
+timebased Day Plans supported by the device.  The value of this object
+represents the number of day plans (primary key into the table) available in
+the timeBaseDayPlanTable."
+::= { timebase 3 }
+
+--2.4.4.2 Maximum Number of Day Plan Events - Parameter
+
+maxDayPlanEvents   OBJECT-TYPE
+SYNTAX  INTEGER (1..255)
+ACCESS  read-only
+STATUS  mandatory
+DESCRIPTION
+"The value of this object specifies the maximum, fixed number of different
+timebased Day Plan Events within each Day Plan supported by the device.  The
+value of this object represents the number of rows (secondary key into the
+table) available within each of the day plans that are available in the 
+timeBaseDayPlanTable."
+::= { timebase 4 }
+
+--2.4.4.3 Day Plan Table
+
+timeBaseDayPlanTable OBJECT-TYPE
+SYNTAX  SEQUENCE OF TimeBaseDayPlanEntry
+ACCESS  not-accessible
+STATUS  mandatory
+DESCRIPTION
+"A table containing day plan numbers, the times when to implement them and the
+associated actions. The number of rows in this table shall not exceed the value
+of the maxDayPlans object.  This table is always used in association with
+device-type specific objects specifying device-type specific actions such as
+activating a message on a VMS sign or initiating a pattern for a signal
+controller.  The device-type specific action will only be initiated when the
+specific DayPlan has been activated and at the indicated time."
+::= { timebase 5 }
+
+timeBaseDayPlanEntry   OBJECT-TYPE
+SYNTAX  TimeBaseDayPlanEntry
+ACCESS  not-accessible
+STATUS  mandatory
+DESCRIPTION
+"A table containing the timebased day plan parameters of a device."
+INDEX { dayPlanNumber, dayPlanEventNumber }
+::= { timeBaseDayPlanTable 1 }
+
+TimeBaseDayPlanEntry ::= SEQUENCE { 
+        dayPlanNumber           INTEGER,
+        dayPlanEventNumber      INTEGER,
+        dayPlanHour             INTEGER,
+        dayPlanMinute           INTEGER,
+        dayPlanActionNumberOID  OBJECT IDENTIFIER}
+
+
+--2.4.4.3.1 Day Plan Number
+
+dayPlanNumber   OBJECT-TYPE
+SYNTAX  INTEGER (1..255)
+ACCESS  read-only
+STATUS  mandatory
+DESCRIPTION
+"This object specifies the day plan number for objects in this row. The value
+shall not exceed the value of the maxDayPlans object.  Day plan numbers are
+used in the TimeBase Event Table to specify day plan numbers to be implemented
+on specific days of the year or as part of the week plans."
+::= { timeBaseDayPlanEntry 1 }
+
+--2.4.4.3.2 Day Plan Event Number
+
+dayPlanEventNumber   OBJECT-TYPE
+SYNTAX  INTEGER (1..255)
+ACCESS  read-only
+STATUS  mandatory
+DESCRIPTION
+"This object identifies day plan event number(s) to be scheduled on a specific
+day plan number.  Several different events can be scheduled to take place
+during a day, and each of these events is one entry or row within a specified
+day plan number.  The total number of events for one day plan shall not exceed
+the value of the maxDayPlanEvents-object."
+::= { timeBaseDayPlanEntry 2 }
+
+--2.4.4.3.3 Day Plan Hour Parameter
+
+dayPlanHour   OBJECT-TYPE
+SYNTAX  INTEGER (0..23)
+ACCESS  read-write
+STATUS  mandatory
+DESCRIPTION
+"The Hour of day that the associated event shall become active.  Valid values
+for this object are 0 - 23 as the time shall be transmitted in military time."
+::= { timeBaseDayPlanEntry 3 }
+
+--2.4.4.3.4 Day Plan Minute Parameter
+
+dayPlanMinute   OBJECT-TYPE
+SYNTAX  INTEGER (0..59)
+ACCESS  read-write
+STATUS  mandatory
+DESCRIPTION
+"The Minute of the hour (defined in the dayPlanHour) object that the associated
+event shall become active. Valid values for this object are 0 - 59 since there
+are only 0 - 59 minutes in an hour."
+::= { timeBaseDayPlanEntry 4 }
+
+--2.4.4.3.5 Day Plan Action Number OID Parameter
+
+dayPlanActionNumberOID   OBJECT-TYPE
+SYNTAX  OBJECT IDENTIFIER
+ACCESS  read-write
+STATUS  mandatory
+DESCRIPTION
+"This object specifies the first index-column (if multi indexed tables are
+pointed to, all indices have to be specified within the OID) within a device-
+type specific action table that contains the actions (specified in the
+associated columns within the table) that shall be executed if the time
+indicated within the dayPlanTable and the timeBaseEventSchedule Table is the
+current time."
+::= { timeBaseDayPlanEntry 5 }
+
+--2.4.4.4 Day Plan Status Parameter
+
+dayPlanStatus   OBJECT-TYPE
+SYNTAX  INTEGER (0..255)
+ACCESS  read-only
+STATUS  mandatory
+DESCRIPTION
+"This object indicates the current value of the active day PlanNumber-object.
+A value of zero (0) indicates that there is no dayPlanNumber that is currently
+active."
+::= { timebase 6 }
+
+--2.4.5	Global Local Time Differential Parameter
+globalLocalTimeDifferential   OBJECT-TYPE
+	SYNTAX	INTEGER (-43200..43200)
+	ACCESS	read-write
+	STATUS	mandatory
+	DESCRIPTION
+	"Indicates the number of seconds offset between local time and GMT.  Positive
+	values indicate local times in the Eastern Hemisphere up to the International
+	Date Line and negative values indicate local times in the Western Hemisphere
+	back to the International Date Line.  If one of the daylight savings times is
+	activated, this value will change automatically at the referenced time. For
+	example, Central Standard Time (CST) is -21600 and Central Daylight Time (CDT)
+	is -18000."
+::= { globalTimeManagement 4 }
+
+
+--2.5 REPORT PARAMETER NODE
+
+globalReport OBJECT IDENTIFIER
+::= { global 4 }
+
+-- This node is an identifier used to organize all objects for support of report
+-- functions that are common to most device types. 
+
+--2.5.1 Maximum Event Log Configurations Parameter
+
+maxEventLogConfigs   OBJECT-TYPE
+SYNTAX  INTEGER (0..65535)
+ACCESS  read-only
+STATUS  mandatory
+DESCRIPTION
+"The number of rows that exist in the static eventLogConfig table for this
+device."
+::= { globalReport 1 }
+
+--2.5.2 Event Log Configuration Table
+
+eventLogConfigTable   OBJECT-TYPE
+SYNTAX  SEQUENCE OF EventLogConfigEntry
+ACCESS  not-accessible
+STATUS  mandatory
+DESCRIPTION
+"A table containing Event Log Configuration information. The number of rows in
+this table is equal to the maxEventLogConfigs object."
+::= { globalReport 2 }
+
+eventLogConfigEntry OBJECT-TYPE
+SYNTAX  EventLogConfigEntry
+ACCESS  not-accessible
+STATUS  mandatory
+DESCRIPTION
+"This object defines an entry in the event log configuration table."
+INDEX { eventConfigID }
+::= { eventLogConfigTable 1 }
+
+EventLogConfigEntry ::= SEQUENCE {
+    eventConfigID             INTEGER,
+    eventConfigClass          INTEGER,
+    eventConfigMode           INTEGER,
+    eventConfigCompareValue   INTEGER,
+    eventConfigCompareValue2  INTEGER,
+    eventConfigCompareOID     OBJECT IDENTIFIER,
+    eventConfigLogOID         OBJECT IDENTIFIER,
+    eventConfigAction         INTEGER }
+
+--2.5.2.1 Event Log Configuration ID Parameter
+
+eventConfigID  OBJECT-TYPE
+SYNTAX  INTEGER (1..65535)
+ACCESS  read-only
+STATUS  mandatory
+DESCRIPTION
+"This object contains the row number which is used to identify the event
+associated with this row in the eventLogConfigTable.  The number of event IDs
+shall not exceed the value indicated in the maxEventLogConfigs object.  The
+value zero (0) is not allowed."
+::= { eventLogConfigEntry 1 }
+
+--2.5.2.2 Event Log Configuration Class Parameter
+
+eventConfigClass OBJECT-TYPE
+SYNTAX  INTEGER (1..255)
+ACCESS  read-write
+STATUS  mandatory
+DESCRIPTION
+"This object contains the class value to assign to the event associated with
+this row in the event configuration table.  This value is used in the event log
+table to organize various events defined in this table into logical groupings."
+::= { eventLogConfigEntry 2 }
+
+--2.5.2.3 Event Log Configuration Mode Parameter
+
+eventConfigMode OBJECT-TYPE
+SYNTAX  INTEGER { other (1),
+                  onChange (2),
+                  greaterThanValue (3),
+                  smallerThanValue (4),
+                  hysteresisBound (5),
+                  periodic (6) }
+ACCESS  read-write
+STATUS  mandatory
+DESCRIPTION
+"This object specifies the mode of operation for this event.  All checks and
+entries to the table must occur within one second of the condition becoming
+true. The modes are defined as follows: 
+VALUE               DESCRIPTION
+onChange            create a log entry when value referenced by the
+   	                eventTypeOID changes
+greaterThanValue    create a log entry when the object value becomes greater 
+                    than the value referenced to by the eventCompareValue 
+   	                object, if this value is exceeded for the amount of time 
+                    specified in the eventConfigCompareValue2 object (in tenth
+                    of seconds) and this value is greater than zero (0). A
+   	                value of zero (0) for eventConfigCompareValue2 indicates
+       	            immediate logging.
+smallerThanValue    create a log entry when the object value becomes less than
+   	                the value referenced to by the eventCompareValue object, if
+                    this value is exceeded for the amount of time specified in
+   	                the eventConfigCompareValue2 object (in tenth of seconds)
+       	            and this value is greater than zero (0). A value of zero
+           	        (0) for eventConfigCompareValue2 indicates immediate
+               	    logging.
+hysteresisBound     creates a log entry when the object value becomes either
+   	                less than the lowerbound value or greater than the
+                    upperbound value.  The lowerbound value is the lower value
+   	                of the eventConfigCompareValue- and the
+       	            eventConfigCompareValue2-objects, the upperbound is the
+           	        other value.
+ periodic			create a log entry every x  seconds, where x is defined
+ 					by the value stored in eventConfigCompareValue.  The
+ 					values stored in eventConfigCompareValue2 and
+ 					eventConfigCompareOID are ignored in this mode."
+::= { eventLogConfigEntry 3 }
+
+--2.5.2.4 Event Log Configuration Compare Value Parameter
+
+eventConfigCompareValue OBJECT-TYPE
+SYNTAX  INTEGER
+ACCESS  read-write
+STATUS  mandatory
+DESCRIPTION
+"This object contains the comparision value to use with eventConfigMode values
+(greaterThanValue, smallerThanValue, hysteresisBound ).  No value within this
+object is necessary when the eventConfigMode-object has the value onChange (2)."
+::= { eventLogConfigEntry 4 }
+
+--2.5.2.5 Event Log Configuration Compare Value 2 Parameter
+
+eventConfigCompareValue2 OBJECT-TYPE
+SYNTAX  INTEGER
+ACCESS  read-write
+STATUS  mandatory
+DESCRIPTION
+	"If the eventConfigMode is set to hysteresisBound, this object specifies the
+	second comparison value for the hysteresis.  If the eventConfigMode is set to
+	greaterThanValue or smallerThanValue, this object specifies the time (in tenths
+	of seconds) for which the comparison must be true prior to the event condition
+	becoming true.  If the eventConfigMode is set to onChange or periodic, the value
+	of this object shall be ignored."
+::= { eventLogConfigEntry 5 }
+
+--2.5.2.6 Event Log Configuration Compare Object Identifier Parameter
+
+eventConfigCompareOID OBJECT-TYPE
+SYNTAX  OBJECT IDENTIFIER
+ACCESS  read-write
+STATUS  mandatory
+DESCRIPTION
+	"This object contains the object identifier which references the value against
+	which the comparison is made.  If the eventConfigMode is set to periodic, the
+	value of this object shall be ignored."
+::= { eventLogConfigEntry 6 }
+
+--2.5.2.7 Event Log Configuration Object Identifier Parameter
+
+eventConfigLogOID OBJECT-TYPE
+SYNTAX  OBJECT IDENTIFIER
+ACCESS  read-write
+STATUS  optional
+DESCRIPTION
+"This object contains the object identifier which indicates what value to log
+when a condition or event occurs (e.g., log the phase display when the watchdog
+alarm status changes)."
+::= { eventLogConfigEntry 7 }
+
+--2.5.2.8 Event Log Configuration Action Parameter
+
+eventConfigAction  OBJECT-TYPE
+SYNTAX  INTEGER { other (1),
+                  disabled (2),
+                  log (3) }
+ACCESS  read-write
+STATUS  optional
+DESCRIPTION
+"This value of this object indicates the action that will take place when the
+event described in this row of the event configuration table occurs.
+disabled  - no entry will be recorded due to this event.
+log - an entry will be recorded in the event log table when this event occurs."
+::= { eventLogConfigEntry 8 }
+
+--2.5.3 Maximum Event Log Size Parameter
+
+maxEventLogSize   OBJECT-TYPE
+SYNTAX  INTEGER (0..65535)
+ACCESS  read-only
+STATUS  mandatory
+DESCRIPTION
+"The maximum, fixed number of rows that can be utilized within the Event Log
+Table."
+::= { globalReport 3 }
+
+--2.5.4 Event Log Table
+
+eventLogTable   OBJECT-TYPE
+SYNTAX  SEQUENCE OF EventLogEntry
+ACCESS  not-accessible
+STATUS  mandatory
+DESCRIPTION
+"A table containing Event History data collected."
+::= { globalReport 4 }
+
+eventLogEntry OBJECT-TYPE
+SYNTAX  EventLogEntry
+ACCESS  not-accessible
+STATUS  mandatory
+DESCRIPTION
+"This object defines an entry in the event log table"
+INDEX { eventLogClass, eventLogNumber }
+::= { eventLogTable 1 }
+
+EventLogEntry ::= SEQUENCE {
+    eventLogClass       INTEGER,
+    eventLogNumber      INTEGER,
+    eventLogID          INTEGER,
+    eventLogTime        Counter,
+    eventLogValue       Opaque }
+
+--2.5.4.1 Event Log Class Parameter
+
+eventLogClass OBJECT-TYPE
+SYNTAX  INTEGER (0..255)
+ACCESS  read-only
+STATUS  mandatory
+DESCRIPTION
+"This object contains the class of the associated event as defined in the
+eventLogConfig Table."
+::= { eventLogEntry 1 }
+
+--2.5.4.2 Event Log Number Parameter
+
+eventLogNumber OBJECT-TYPE
+SYNTAX  INTEGER (1..255)
+ACCESS  read-only
+STATUS  mandatory
+DESCRIPTION
+"The event number within this class for this event.  Event numbers shall be
+assigned starting at 1 and shall increase to the value specified by the
+associated eventClassLimit for the class associated with the rows. 
+Events shall maintain a chronological ordering in the table with the oldest
+event of a class occupying the row with eventNumber = 1, and subsequent events
+filling subsequent rows. This ordering shall be maintained when events are
+cleared."
+::= { eventLogEntry 2 }
+
+--2.5.4.3 Event Log ID Parameter
+
+eventLogID  OBJECT-TYPE
+SYNTAX  INTEGER (0..65535)
+ACCESS  read-only
+STATUS  mandatory
+DESCRIPTION
+"This object contains the event configuration ID (from the eventLogConfigTable)
+that caused this table entry.  It indicates the row in the eventLogConfig table
+reponsible for this event entry.  If this object is set to zero (0) then the
+associated row (in the eventLogTable) is cleared and the following rows shall be
+renumbered to maintain a sequential eventNumber sequence."
+::= { eventLogEntry 3 }
+
+--2.5.4.4 Event Log Time Parameter
+
+eventLogTime OBJECT-TYPE
+SYNTAX  Counter
+ACCESS  read-only
+STATUS  mandatory
+DESCRIPTION
+"The time that the event occurred in seconds since the epoch of 00:00:00
+(midnight) January 1, 1970 per the device's globalTime object.  If the device
+does not have valid date and time information, then this shall be the time in
+seconds since the device powered up."
+::= { eventLogEntry 4 }
+
+--2.5.4.5 Event Log Value Parameter
+
+eventLogValue  OBJECT-TYPE
+SYNTAX  Opaque 
+ACCESS  read-only
+STATUS  mandatory
+DESCRIPTION
+"The value of this object is set to the value referenced by the eventConfigLogOID of
+the associated eventLogID when the event was logged.  Its length is variable."
+::= { eventLogEntry 5 }
+
+
+--2.5.5 Maximum Event Classes Parameter
+
+maxEventClasses OBJECT-TYPE
+SYNTAX  INTEGER (0..255)
+ACCESS  read-write
+STATUS  mandatory
+DESCRIPTION
+"This object defines the maximum, fixed number of rows in the eventClassTable
+that this device supports.  This places an upper limit on the number of classes
+that may be defined for events in this device."
+::= { globalReport 5 }
+
+--2.5.6 Event Class Table
+
+eventClassTable OBJECT-TYPE
+SYNTAX  SEQUENCE OF EventClassEntry
+ACCESS  not-accessible
+STATUS  mandatory
+DESCRIPTION
+"This table is used to configure event logging limits and log table
+maintenance."
+::= { globalReport 6 }
+
+eventClassEntry  OBJECT-TYPE
+SYNTAX  EventClassEntry
+ACCESS  not-accessible
+STATUS  mandatory
+DESCRIPTION
+"This defines a row in the Event Class Table."
+INDEX { eventClassNumber }
+::= { eventClassTable 1 }
+
+EventClassEntry ::= SEQUENCE {
+    eventClassNumber        INTEGER,
+    eventClassLimit         INTEGER,
+    eventClassClearTime     Counter,
+    eventClassDescription   OCTET STRING,
+    eventClassNumRowsInLog  INTEGER }
+
+--2.5.6.1 Event Class Number Parameter
+
+eventClassNumber OBJECT-TYPE
+SYNTAX  INTEGER (1..255)
+ACCESS  read-only
+STATUS  mandatory
+DESCRIPTION
+"This is a class value that is to be configured."
+::= { eventClassEntry 1 }
+
+--2.5.6.2 Event Class Limit Parameter
+
+eventClassLimit OBJECT-TYPE
+SYNTAX  INTEGER (0..255)
+ACCESS  read-write
+STATUS  mandatory
+DESCRIPTION
+"This object specifies the maximum number of events of the associated class to
+store in the log.  Once the limit is reached, the oldest entry of the matching
+class will be overwritten by any new entry of the same class.  If the value of
+this object is set to a number smaller than the current number of rows within
+this class in the eventLogTable, then the oldest entries shall be lost/deleted."
+::= { eventClassEntry 2 }
+
+--2.5.6.3 Event Class Clear Time Parameter
+
+eventClassClearTime OBJECT-TYPE
+SYNTAX  Counter
+ACCESS  read-write
+STATUS  mandatory
+DESCRIPTION
+"This object is used to clear multiple event log entries from the event log
+table.  Setting this value shall cause all events of this class that have an
+eventTime equal to or less than this object to be cleared from the eventLog
+table.  The time is the number of seconds since the epoch of 00:00:00
+(midnight) January 1,
+1970."
+::= { eventClassEntry 3 }
+
+--2.5.6.4 Event Class Description Parameter
+
+eventClassDescription OBJECT-TYPE
+SYNTAX  OCTET STRING
+ACCESS  read-write
+STATUS  optional
+DESCRIPTION
+"This object specifies a description of the class in ASCII characters."
+::= { eventClassEntry 4 }
+
+--2.5.6.5 Event Class Number of Rows in Event Log Table Parameter
+
+eventClassNumRowsInLog OBJECT-TYPE
+SYNTAX  INTEGER (0..255)
+ACCESS  read-only
+STATUS  mandatory
+DESCRIPTION
+"The number of rows for this class that currently exist  in the eventLogTable."
+::= { eventClassEntry 5 }
+
+--2.6 STMP OBJECT NODE 
+
+profilesSTMP OBJECT IDENTIFIER
+::= { profiles 2 }
+
+--This node is an identifier used to group all objects for support of
+-- configuration functions that are common to device types that support the
+-- STMP protocol.  The objects under this node are placed under the Protocols\
+-- Profiles\STMP subtree within the NEMA node, but they have been listed  here
+-- due to the lack of a separate document that lists these objects.
+
+--2.6.1 Dynamic Object Persistence Parameter
+
+dynamicObjectPersistence  OBJECT-TYPE
+SYNTAX  INTEGER (0..65535)
+ACCESS  read-write
+STATUS  mandatory
+DESCRIPTION
+"The maximum power outage time in minutes that may occur before all STMP
+dynamic object definitions in a device shall be invalidated.
+If this object is set to zero then existing dynamic object definintions shall
+be invalidated on device power up.  
+If this object is set to its maximum value (65535) the existing dynamic object
+definitions shall not be invalidated due to power outages of any duration.
+
+A device that supports STMP dynamic objects shall support this object."
+REFERENCE
+"NEMA TS 3.2 Clause 4.2.1.1"
+::= { profilesSTMP 1 }
+
+--2.7 PMPP OBJECT NODE
+
+profilesPMPP OBJECT IDENTIFIER
+::= { profiles 3 }
+
+-- This node is an identifier used to group all objects for support of the PMPP
+-- function that are common to all device types.  The objects under this node
+-- are placed under the Protocols\Profiles\PMPP subtree within the NEMA node,
+-- but they have been listed here due to the lack of a separate document that 
+-- lists these objects.
+
+--2.7.1 Maximum HDLC Group Address Parameter
+
+maxGroupAddresses   OBJECT-TYPE
+SYNTAX  INTEGER (0..255)
+ACCESS  read-only
+STATUS  mandatory
+DESCRIPTION 
+"The maximum number of group addresses this device supports. This object
+indicates the maximum number of rows in the Data Link Layer group address
+table."
+::= { profilesPMPP 1 }
+
+--2.7.2 HDLC Group Address Table
+
+hdlcGroupAddressTable OBJECT-TYPE
+SYNTAX  SEQUENCE OF HdlcGroupAddressEntry
+ACCESS  not-accessible
+STATUS  mandatory
+DESCRIPTION
+"A table containing group addresses at which a device may receive frames."
+::= { profilesPMPP 2 }
+
+hdlcGroupAddressEntry   OBJECT-TYPE
+SYNTAX  HdlcGroupAddressEntry
+ACCESS  not-accessible
+STATUS  mandatory
+DESCRIPTION
+"An entry in the group address table that contains a device's data link layer
+group address at which it will accept frames."
+INDEX { hdlcGroupAddressIndex }
+::= { hdlcGroupAddressTable 1 }
+
+HdlcGroupAddressEntry ::= SEQUENCE {
+   hdlcGroupAddressIndex   INTEGER,
+   hdlcGroupAddress        INTEGER }
+
+--2.7.2.1 HDLC Group Address Index Parameter
+
+hdlcGroupAddressIndex   OBJECT-TYPE
+SYNTAX  INTEGER (0..255)
+ACCESS  read-only
+STATUS  mandatory
+DESCRIPTION 
+"The index number for the group address in this row."
+::= { hdlcGroupAddressEntry 1 }
+
+--2.7.2.2 HDLC Group Address Parameter
+
+hdlcGroupAddress    OBJECT-TYPE
+SYNTAX  INTEGER
+ACCESS  read-write
+STATUS  mandatory
+DESCRIPTION 
+"A group addresss for the data link layer. For PMPP, the syntax is an 8 or 16
+bit entry with the second low order bit set to a one indicating that this is a
+group address."
+REFERENCE
+"NEMA TS 3.3 Clause 3.3.3.1"
+::= { hdlcGroupAddressEntry 2 }
+
+--2.8      SECURITY NODE 
+security OBJECT IDENTIFIER ::= {global 5}
+-- This node is an identifier used to group all objects related to the
+-- assignment of community names and the access rights they provide.
+
+--2.8.1   Community Name Administrator Parameter
+communityNameAdmin OBJECT-TYPE
+	SYNTAX    OCTET STRING (SIZE(8..16))
+	ACCESS    read-write
+	STATUS    mandatory
+	DESCRIPTION
+		"This object is the community name that must be used to specifically
+		gain access to information under the security node.  A message with
+		this value in the community name field of an SNMP message has user
+		read-write access to the security node objects and all other objects
+		implemented in the device.  The syntax is defined as an OCTET STRING
+		and therefore any character can have a value of 0..255."
+	DEFVAL { "administrator" }
+::= { security 1 }
+
+--2.8.2   Maximum Community Names Parameter
+communityNamesMax	OBJECT-TYPE
+	SYNTAX    INTEGER (1..255)
+	ACCESS    read-only
+	STATUS    mandatory
+	DESCRIPTION
+		"This object specifies the maximum number of rows that are implemented
+		in the community name table."
+::= { security 2 }
+
+--2.8.3   Community Names Table
+communityNameTable  OBJECT-TYPE
+	SYNTAX    SEQUENCE OF CommunityNameTableEntry
+	ACCESS    not-accessible
+	STATUS    mandatory
+	DESCRIPTION
+		"This table defines the community names that can appear in the community
+		name field of the SNMP message and access privileges associated with that
+		community name."
+::= { security 3 }
+
+communityNameTableEntry  OBJECT-TYPE
+	SYNTAX    CommunityNameTableEntry
+	ACCESS    not-accessible
+	STATUS    mandatory
+	DESCRIPTION
+		"This is the row index of information in the community name table."
+	INDEX     { communityNameIndex }
+::= { communityNameTable 1}
+
+CommunityNameTableEntry::=SEQUENCE
+				{  communityNameIndex       INTEGER,
+	               communityNameUser        OCTET STRING,
+				   communityNameAccessMask  Gauge
+					}
+--2.8.3.1  Community Name Index Parameter
+communityNameIndex  OBJECT-TYPE
+	SYNTAX  INTEGER (1..255)
+	ACCESS  read-only
+	STATUS  mandatory
+	DESCRIPTION
+		"This object defines the row index into the communityNameTable. This value shall not exceed the communityNamesMax object value."
+::=  { communityNameTableEntry 1 }
+
+--2.8.3.2  User Community Name Parameter
+communityNameUser  OBJECT-TYPE
+	SYNTAX  OCTET STRING (SIZE(6..16))
+	ACCESS  read-write
+	STATUS  mandatory
+	DESCRIPTION
+		"This object defines a community name value that a security administrator can
+		assign user read-write access to information (other than security) in a device
+		A message with this value in the community name field of an SNMP message has
+		user access rights as defined in the communityNameAccessMask.  The syntax is
+		defined as an OCTET STRING and therefore any character can have a value of
+		0..255."
+	DEFVAL  { "public" }
+::=  { communityNameTableEntry 2 }
+
+--2.8.3.3  User Community Name Mask Parameter
+communityNameAccessMask OBJECT-TYPE
+	SYNTAX  Gauge (0..4294967295)
+	ACCESS  read-write
+	STATUS  mandatory
+	DESCRIPTION
+		"This object defines a 32 bit mask that can be used to associate 'write access'
+		with a community name.  A value of 0x00000000 grants the community name user
+		read-only access and overrides any individual object's read-write access
+		clause.  A value of OxFFFFFFFF grants the community name user read-write access
+		and an individual object's read-write access clause applies.  Values other
+		0x00000000 and 0xFFFFFFFF are implementation specific and may limit viewing
+		and/or accessing the information in a device."
+	DEFVAL  { 4294967295 }
+::= { communityNameTableEntry 3 }
+
+END
+
+
